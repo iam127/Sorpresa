@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para Naomi</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(160deg, #fff9f5 0%, #fef0f5 50%, #f5f0ff 100%);
+    font-family: 'Lato', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    transition: background 1.2s ease;
+  }
+
+  body.night   { background: linear-gradient(160deg, #0d0820 0%, #1a0d2e 50%, #0a1a2e 100%); }
+  body.evening { background: linear-gradient(160deg, #2d1a0e 0%, #4a1a2e 50%, #1a0d3a 100%); }
+
+  .stars {
+    position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; display: none;
+  }
+  body.night .stars, body.evening .stars { display: block; }
+
+  .star {
+    position: absolute; background: white; border-radius: 50%;
+    animation: twinkle ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity:.2; transform:scale(1); }
+    50%     { opacity:1;  transform:scale(1.4); }
+  }
+
+  /* BOTÓN VOLVER — esquina superior izquierda, siempre visible */
+  .back-btn {
+    position: fixed;
+    top: 20px; left: 20px;
+    z-index: 100;
+    display: none;
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.5);
+    color: white;
+    font-family: 'Lato', sans-serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 10px 22px;
+    cursor: pointer;
+    border-radius: 40px;
+    backdrop-filter: blur(6px);
+    transition: all 0.3s;
+  }
+  body:not(.night):not(.evening) .back-btn {
+    border-color: rgba(180,60,120,0.6);
+    color: #b03c78;
+    background: rgba(255,255,255,0.5);
+  }
+  .back-btn:hover {
+    background: rgba(255,255,255,0.25);
+    transform: scale(1.05);
+  }
+  .back-btn.visible { display: block; animation: fadeUp 0.5s ease forwards; }
+
+  .scene {
+    width: 100%; min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative; padding: 40px 20px;
+  }
+
+  .intro { text-align: center; z-index: 10; position: relative; }
+
+  .intro-label {
+    font-family: 'Lato', sans-serif; font-weight: 300;
+    font-size: 15px; color: #b08a9a;
+    letter-spacing: 3px; text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0; animation: fadeUp 1s ease 0.3s forwards;
+  }
+  .intro-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px,6vw,52px); color: #3d2c3a;
+    font-weight: 400; margin-bottom: 36px;
+    opacity: 0; animation: fadeUp 1s ease 0.6s forwards;
+  }
+  .input-wrap {
+    position: relative; display: inline-block;
+    opacity: 0; animation: fadeUp 1s ease 0.9s forwards;
+  }
+  .name-input {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; color: #3d2c3a;
+    border: none; border-bottom: 2px solid #d4a0b8;
+    background: transparent; padding: 10px 16px 10px 0;
+    width: 240px; outline: none; text-align: center;
+    letter-spacing: 2px; transition: border-color 0.3s;
+  }
+  .name-input::placeholder { color: #d4b8c8; font-style: italic; font-size: 18px; }
+  .name-input:focus { border-color: #b05c8a; }
+  .hint { font-size: 12px; color: #c0a0b0; margin-top: 12px; font-style: italic; letter-spacing: 1px; }
+
+  .reveal { display: none; flex-direction: column; align-items: center; width: 100%; position: relative; z-index: 10; }
+  .reveal.active { display: flex; animation: fadeUp 0.8s ease forwards; }
+
+  .greeting {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px,6vw,58px); color: #6b2d5e;
+    font-weight: 600; text-align: center; line-height: 1.15;
+    margin-bottom: 6px; animation: fadeUp 0.6s ease forwards;
+  }
+  body.night .greeting, body.evening .greeting { color: #f0c0e0; }
+  .greeting em { color: #c0487a; font-style: italic; }
+  body.night .greeting em, body.evening .greeting em { color: #ff90c0; }
+
+  .time-greeting {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(20px,4vw,38px); color: #9a4070;
+    font-weight: 400; font-style: italic; text-align: center;
+    margin-bottom: 8px; animation: fadeUp 0.6s ease 0.15s both;
+  }
+  body.night .time-greeting { color: #c8a0e0; }
+  body.evening .time-greeting { color: #e0b0c8; }
+
+  .subtitle-text {
+    font-family: 'Lato', sans-serif; font-weight: 300;
+    font-size: 15px; color: #a07090; letter-spacing: 2px;
+    text-align: center; margin-bottom: 40px;
+    animation: fadeUp 0.6s ease 0.3s both;
+  }
+  body.night .subtitle-text { color: #a090c0; }
+
+  .garden {
+    width: 100%; max-width: 700px;
+    position: relative; height: 340px;
+    animation: fadeUp 0.8s ease 0.4s both;
+  }
+  .garden svg { width: 100%; height: 100%; }
+
+  .moon {
+    position: fixed; top: 40px; right: 60px;
+    width: 70px; height: 70px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 38%, #fff8d0, #f0c840);
+    box-shadow: 0 0 30px 10px rgba(255,220,80,0.25);
+    display: none; z-index: 2;
+    animation: moonRise 1.5s ease forwards;
+  }
+  body.night .moon, body.evening .moon { display: block; }
+  @keyframes moonRise { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  /* PÉTALOS */
+  .petal-float {
+    position: fixed; pointer-events: none;
+    animation: petalFall linear forwards; z-index: 1;
+  }
+  @keyframes petalFall {
+    0%   { transform: translateY(-60px) rotate(0deg) translateX(0px); opacity: 0.9; }
+    25%  { transform: translateY(25vh) rotate(180deg) translateX(20px); opacity: 0.85; }
+    50%  { transform: translateY(50vh) rotate(360deg) translateX(-15px); opacity: 0.8; }
+    75%  { transform: translateY(75vh) rotate(540deg) translateX(10px); opacity: 0.6; }
+    100% { transform: translateY(110vh) rotate(720deg) translateX(0px); opacity: 0; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="moon"></div>
+
+<!-- BOTÓN VOLVER fijo arriba izquierda -->
+<button class="back-btn" id="againBtn">← Volver</button>
+
+<div class="scene">
+  <div class="intro" id="intro">
+    <p class="intro-label">Un regalo especial</p>
+    <h1 class="intro-title">Escribe tu nombre</h1>
+    <div class="input-wrap">
+      <input class="name-input" id="nameInput" type="text" placeholder="tu nombre aquí..." autocomplete="off" />
+      <p class="hint">Presiona Enter para continuar ✦</p>
+    </div>
+  </div>
+
+  <div class="reveal" id="reveal">
+    <h2 class="greeting" id="greetingText"></h2>
+    <p class="time-greeting" id="timeGreeting"></p>
+    <p class="subtitle-text" id="subtitleText"></p>
+    <div class="garden" id="garden"></div>
+  </div>
+</div>
+
+<script>
+const nameInput    = document.getElementById('nameInput');
+const intro        = document.getElementById('intro');
+const reveal       = document.getElementById('reveal');
+const greetingText = document.getElementById('greetingText');
+const timeGreeting = document.getElementById('timeGreeting');
+const subtitleText = document.getElementById('subtitleText');
+const garden       = document.getElementById('garden');
+const againBtn     = document.getElementById('againBtn');
+const starsEl      = document.getElementById('stars');
+
+const SPECIAL = 'naomi';
+function normalize(s) {
+  return s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+function getTimeInfo() {
+  const h = new Date().getHours();
+  if (h>=5  && h<12) return { label:'¡Buenos días!',   period:'morning',   emoji:'☀️' };
+  if (h>=12 && h<14) return { label:'¡Buen mediodía!', period:'noon',      emoji:'🌤️' };
+  if (h>=14 && h<19) return { label:'¡Buenas tardes!', period:'afternoon', emoji:'🌇' };
+  if (h>=19 && h<22) return { label:'¡Buenas noches!', period:'evening',   emoji:'🌙' };
+  return                    { label:'¡Buenas noches!', period:'night',     emoji:'🌙' };
+}
+
+const subtitles = {
+  morning:   'Que tengas un día lleno de luz y flores',
+  noon:      'Espero que tu día esté siendo hermoso',
+  afternoon: 'Que esta tarde sea tan bonita como tú',
+  evening:   'Que descanses entre flores y sueños bonitos',
+  night:     'Que el cielo estrellado te acompañe esta noche',
+};
+const subtitlesNaomi = {
+  morning:   'Que tu mañana brille tanto como tú, Naomi',
+  noon:      'Espero que tu día esté siendo tan especial como eres',
+  afternoon: 'Estas flores son para ti, con mucho cariño',
+  evening:   'Que descanses bonito, Naomi. Estas flores son para ti',
+  night:     'Dulces sueños, Naomi. El cielo te manda estrellas',
+};
+
+let petalInterval = null;
+
+function launch(name) {
+  const isNaomi = normalize(name) === SPECIAL;
+  const time    = getTimeInfo();
+
+  greetingText.innerHTML = isNaomi ? `<em>Hola, Naomi</em>` : `<em>Hola, ${name}</em>`;
+  timeGreeting.textContent = time.label;
+  subtitleText.textContent = isNaomi ? subtitlesNaomi[time.period] : subtitles[time.period];
+
+  document.body.classList.remove('night','evening');
+  if (time.period === 'night')   document.body.classList.add('night');
+  if (time.period === 'evening') document.body.classList.add('evening');
+
+  if (time.period === 'night' || time.period === 'evening') buildStars();
+
+  intro.style.display = 'none';
+  reveal.classList.add('active');
+  againBtn.classList.add('visible');
+
+  buildGarden(time.period);
+  startPetals(time.period);
+}
+
+nameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && nameInput.value.trim()) launch(nameInput.value.trim());
+});
+
+againBtn.addEventListener('click', () => {
+  reveal.classList.remove('active');
+  againBtn.classList.remove('visible');
+  document.body.classList.remove('night','evening');
+  intro.style.display = 'block';
+  nameInput.value = '';
+  garden.innerHTML = '';
+  starsEl.innerHTML = '';
+  stopPetals();
+  document.querySelectorAll('.petal-float').forEach(p => p.remove());
+  setTimeout(() => nameInput.focus(), 100);
+});
+
+/* ── ESTRELLAS ── */
+function buildStars() {
+  starsEl.innerHTML = '';
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = 1 + Math.random() * 2.5;
+    s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*90}%;left:${Math.random()*100}%;animation-duration:${2+Math.random()*3}s;animation-delay:${Math.random()*3}s;`;
+    starsEl.appendChild(s);
+  }
+}
+
+/* ── PALETAS ── */
+const PALETTES_DAY = [
+  { c:['#e8547a','#f08fac','#f7c5d5','#fce8ef'], center:'#fff0a0' },
+  { c:['#a050c8','#c080e8','#ddb0f5','#f2dcff'], center:'#ffe87a' },
+  { c:['#e86828','#f0985a','#f7c89a','#fdecd8'], center:'#fff3a0' },
+  { c:['#2880d8','#70aae8','#a8cef5','#dceeff'], center:'#fff8a0' },
+  { c:['#28a858','#6ad090','#a8e8bc','#dcf8e8'], center:'#fff38c' },
+  { c:['#c83060','#e86090','#f5a0c0','#fcd8e8'], center:'#fff4a0' },
+  { c:['#d89820','#f0c040','#f8de88','#fef5d0'], center:'#fff9c0' },
+];
+const PALETTES_NIGHT = [
+  { c:['#9060d8','#b090f8','#d0c0ff','#ecdeff'], center:'#ffe8ff' },
+  { c:['#4060c8','#6090e8','#90c0ff','#c0dcff'], center:'#e8f8ff' },
+  { c:['#c030a0','#e060c8','#f090e0','#ffc0f8'], center:'#fff0ff' },
+  { c:['#206090','#3090c0','#60c0e8','#a0e0ff'], center:'#e0f8ff' },
+  { c:['#503090','#7050c0','#a080e0','#d0b0ff'], center:'#f0e0ff' },
+];
+
+function getPalettes(period) {
+  return (period==='night'||period==='evening') ? PALETTES_NIGHT : PALETTES_DAY;
+}
+function groundColor(period) {
+  if (period==='night')   return { g1:'#1a3020', g2:'#102818', grass:'#305840' };
+  if (period==='evening') return { g1:'#2a2820', g2:'#1a1810', grass:'#486040' };
+  return { g1:'#e8f5e8', g2:'#d0eccc', grass:'#6aaa60' };
+}
+
+/* ── FLORES ── */
+function roseFlower(cx,cy,r,pal) {
+  let g=`<g>`;
+  for(let i=0;i<8;i++){
+    const a=(i/8)*360;
+    g+=`<ellipse transform="rotate(${a} ${cx} ${cy}) translate(${cx} ${cy-r*0.55})" rx="${r*0.38}" ry="${r*0.58}" fill="${pal.c[i%2]}" opacity="0.92"/>`;
+  }
+  for(let i=0;i<8;i++){
+    const a=(i/8)*360+22.5;
+    g+=`<ellipse transform="rotate(${a} ${cx} ${cy}) translate(${cx} ${cy-r*0.35})" rx="${r*0.28}" ry="${r*0.42}" fill="${pal.c[2]}" opacity="0.85"/>`;
+  }
+  g+=`<circle cx="${cx}" cy="${cy}" r="${r*0.26}" fill="${pal.center}" stroke="${pal.c[0]}" stroke-width="1.5"/></g>`;
+  return g;
+}
+function daisy(cx,cy,r,pal) {
+  let g=`<g>`;
+  for(let i=0;i<12;i++){
+    const a=(i/12)*360;
+    g+=`<ellipse transform="rotate(${a} ${cx} ${cy}) translate(${cx} ${cy-r*0.6})" rx="${r*0.18}" ry="${r*0.48}" fill="${pal.c[i%2===0?0:1]}" opacity="0.9"/>`;
+  }
+  g+=`<circle cx="${cx}" cy="${cy}" r="${r*0.22}" fill="${pal.center}" stroke="${pal.c[0]}" stroke-width="1"/></g>`;
+  return g;
+}
+function tulip(cx,cy,r,pal) {
+  const b=cy+r*0.2;
+  let g=`<g>`;
+  g+=`<line x1="${cx}" y1="${b}" x2="${cx}" y2="${cy+r}" stroke="#6aaa60" stroke-width="3" stroke-linecap="round"/>`;
+  g+=`<ellipse cx="${cx+r*0.3}" cy="${cy+r*0.7}" rx="${r*0.22}" ry="${r*0.12}" fill="#7ac870" transform="rotate(-30 ${cx+r*0.3} ${cy+r*0.7})"/>`;
+  g+=`<ellipse cx="${cx}" cy="${b-r*0.38}" rx="${r*0.28}" ry="${r*0.48}" fill="${pal.c[0]}" opacity="0.95"/>`;
+  g+=`<ellipse cx="${cx-r*0.26}" cy="${b-r*0.2}" rx="${r*0.22}" ry="${r*0.5}" fill="${pal.c[1]}" opacity="0.85" transform="rotate(-18 ${cx-r*0.26} ${b-r*0.2})"/>`;
+  g+=`<ellipse cx="${cx+r*0.26}" cy="${b-r*0.2}" rx="${r*0.22}" ry="${r*0.5}" fill="${pal.c[1]}" opacity="0.85" transform="rotate(18 ${cx+r*0.26} ${b-r*0.2})"/>`;
+  g+=`</g>`;
+  return g;
+}
+const flowerFns=[roseFlower,daisy,tulip];
+
+function buildGarden(period) {
+  const W=680, H=340;
+  const gc=groundColor(period);
+  const palettes=getPalettes(period);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  svg+=`<style>@keyframes bloomIn{from{opacity:0;transform:scale(0.1) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}</style>`;
+  svg+=`<ellipse cx="${W/2}" cy="${H-10}" rx="${W*0.52}" ry="28" fill="${gc.g1}" opacity="0.7"/>`;
+  svg+=`<ellipse cx="${W/2}" cy="${H-6}"  rx="${W*0.42}" ry="16" fill="${gc.g2}" opacity="0.6"/>`;
+  for(let i=0;i<28;i++){
+    const x=60+Math.random()*(W-120), h=14+Math.random()*22, bend=(Math.random()-0.5)*12;
+    svg+=`<path d="M${x} ${H-8} Q${x+bend} ${H-8-h/2} ${x+bend*1.4} ${H-8-h}" fill="none" stroke="${gc.grass}" stroke-width="${0.9+Math.random()*0.8}" stroke-linecap="round" opacity="${0.4+Math.random()*0.4}"/>`;
+  }
+  const positions=[
+    {x:90, y:H-70, r:54,fi:2,pi:0},{x:195,y:H-100,r:62,fi:1,pi:1},
+    {x:315,y:H-115,r:68,fi:0,pi:2},{x:440,y:H-98, r:62,fi:1,pi:3},
+    {x:560,y:H-72, r:56,fi:2,pi:4},{x:148,y:H-65, r:40,fi:0,pi:0},
+    {x:500,y:H-62, r:40,fi:1,pi:2},
+  ];
+  positions.forEach((p,idx)=>{
+    const pal=palettes[p.pi%palettes.length], fn=flowerFns[p.fi], delay=idx*0.13;
+    if(p.fi!==2){
+      svg+=`<line x1="${p.x}" y1="${p.y+p.r*0.2}" x2="${p.x}" y2="${H-12}" stroke="${gc.grass}" stroke-width="${2+Math.random()}" stroke-linecap="round"/>`;
+      const lx=p.x+(Math.random()>0.5?1:-1)*p.r*0.35, ly=p.y+p.r*(0.5+Math.random()*0.3);
+      svg+=`<ellipse cx="${lx}" cy="${ly}" rx="${p.r*0.18}" ry="${p.r*0.1}" fill="${gc.grass}" transform="rotate(${(Math.random()-0.5)*40} ${lx} ${ly})" opacity="0.75"/>`;
+    }
+    svg+=`<g style="opacity:0;animation:bloomIn 0.7s cubic-bezier(.34,1.56,.64,1) ${delay}s forwards">${fn(p.x,p.y,p.r,pal)}</g>`;
+  });
+  const buds=[{x:250,y:H-55,pi:1},{x:380,y:H-52,pi:3},{x:470,y:H-58,pi:0}];
+  buds.forEach((b,i)=>{
+    const pal=palettes[b.pi%palettes.length];
+    svg+=`<g style="opacity:0;animation:bloomIn 0.6s ease ${0.9+i*0.15}s forwards">`;
+    svg+=`<line x1="${b.x}" y1="${b.y}" x2="${b.x}" y2="${H-14}" stroke="${gc.grass}" stroke-width="1.5" stroke-linecap="round"/>`;
+    svg+=`<ellipse cx="${b.x}"   cy="${b.y-10}" rx="9" ry="14" fill="${pal.c[0]}" opacity="0.85"/>`;
+    svg+=`<ellipse cx="${b.x-7}" cy="${b.y-4}"  rx="6" ry="11" fill="${pal.c[1]}" opacity="0.7" transform="rotate(-25 ${b.x-7} ${b.y-4})"/>`;
+    svg+=`<ellipse cx="${b.x+7}" cy="${b.y-4}"  rx="6" ry="11" fill="${pal.c[1]}" opacity="0.7" transform="rotate(25 ${b.x+7} ${b.y-4})"/>`;
+    svg+=`</g>`;
+  });
+  svg+=`</svg>`;
+  garden.innerHTML=svg;
+}
+
+/* ── PÉTALOS INFINITOS ── */
+const PETALS_DAY   = ['🌸','🌺','🌼','🌷','🪷'];
+const PETALS_NIGHT = ['✨','🌸','💜','🌙','🪷'];
+
+function spawnOnePetal(shapes) {
+  const el = document.createElement('div');
+  el.className = 'petal-float';
+  el.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+  el.style.left = Math.random() * 100 + 'vw';
+  el.style.top  = '-60px';
+  el.style.fontSize = (13 + Math.random() * 18) + 'px';
+  const dur = 5 + Math.random() * 6;
+  el.style.animationDuration = dur + 's';
+  el.style.opacity = 0.5 + Math.random() * 0.45;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), dur * 1000 + 300);
+}
+
+function startPetals(period) {
+  const shapes = (period==='night'||period==='evening') ? PETALS_NIGHT : PETALS_DAY;
+  // lanzar varios al inicio
+  for (let i = 0; i < 18; i++) {
+    setTimeout(() => spawnOnePetal(shapes), i * 200);
+  }
+  // luego seguir cada ~600ms para siempre
+  petalInterval = setInterval(() => spawnOnePetal(shapes), 600);
+}
+
+function stopPetals() {
+  if (petalInterval) { clearInterval(petalInterval); petalInterval = null; }
+}
+
+nameInput.focus();
+</script>
+</body>
+</html>
